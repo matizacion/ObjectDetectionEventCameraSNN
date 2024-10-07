@@ -5,3 +5,7 @@ Projekt wykonany w ramach pracy dyplomowej kończącej studia II stopnia na kier
 W pracy wykorzystano kod pochodzący z następujących źródeł:
 
 https://github.com/prophesee-ai/prophesee-automotive-dataset-toolbox
+
+<p align="center">
+  <img src="example_dataset.png" />
+</p>
