@@ -21,6 +21,7 @@ import cv2
 import argparse
 from glob import glob
 import random
+import yaml
 
 from src.visualize import vis_utils as vis
 
@@ -70,29 +71,54 @@ def play_files_parallel(td_files, labels=None, delta_t=50000, skip=0):
         cv2.imshow('out', frame)
         cv2.waitKey(0)
 
-
-# def parse_args():
-#     """Parse input arguments."""
-#     parser = argparse.ArgumentParser(
-#         description='visualize one or several event files along with their boxes')
-#     parser.add_argument('records', nargs="+",
-#                         help='input event files, annotation files are expected to be in the same folder')
-#     parser.add_argument('-s', '--skip', default=0, type=int, help="skip the first n microseconds")
-#     parser.add_argument('-d', '--delta_t', default=20000, type=int, help="load files by delta_t in microseconds")
-
-#     return parser.parse_args()
-
-
-if __name__ == '__main__':
-    # ARGS = parse_args()
-    file_dataset_files = glob('dataset/dataset/*.dat')
-    file_dataset_files = sorted(file_dataset_files)
-    # print(file_dataset_files)
-    # random.seed(42)
-    # random_file = random.choice(file_dataset_files)
-    # print(random_file)
-    # random_file_labels = glob(random_file.split('_td.dat')[0] +  '_bbox.npy')[0]
-
-    # play_files_parallel([random_file], skip=0, delta_t=100000)
+def visualizeGEN1Format(file_dataset_files):
     play_files_parallel([file_dataset_files[10]], skip=0, delta_t=100000)
     print(file_dataset_files[0])
+
+def visualizeYoloFormat(yaml_path, image_path, labels_path):
+
+    with open(yaml_path, 'r') as stream:
+        try:
+            data = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)    
+    # print(data)
+    colors = {0:(0,0,255), 1 : (0,255,0)}
+    cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+    image_paths = glob(image_path + "/*.png")
+    labels_paths = glob(labels_path + "/*.txt")
+    for image_path in image_paths:
+        img = cv2.imread(image_path)
+        image_name = image_path.split("/")[-1]
+        label_name = image_name.replace(".png", ".txt")
+        label_name = label_name.replace("histogram", "label")
+        corresponding_label = labels_path + "/" + label_name
+        with open(corresponding_label, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                line = line.split()
+                # print(line)
+                x = int(float(line[1]) * img.shape[1])
+                y = int(float(line[2]) * img.shape[0])
+                w = int(float(line[3]) * img.shape[1])
+                h = int(float(line[4]) * img.shape[0])
+                lTop = (int(x-w/2), int(y-h/2))
+                rBottom = (int(x+w/2), int(y+h/2))
+                # print(colors[int(line[0])])
+                cv2.rectangle(img, lTop, rBottom, colors[int(line[0])], 1)
+                cv2.putText(img,data['names'][int(line[0])], (lTop[0], lTop[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[int(line[0])], 1)
+        
+        cv2.imshow('image', img)
+        cv2.waitKey(0)
+    
+
+if __name__ == '__main__':
+    # file_dataset_files = glob('dataset/dataset/*.dat')
+    # file_dataset_files = sorted(file_dataset_files)
+    # visualizeGEN1Format(file_dataset_files)
+
+    dataset_path = "dataset/GEN1"
+    yaml_path = dataset_path + "/data.yaml"
+    image_path = dataset_path + "/done"
+    labels_path = dataset_path + "/NonNegativeLabelsYolo"
+    visualizeYoloFormat(yaml_path, image_path, labels_path)

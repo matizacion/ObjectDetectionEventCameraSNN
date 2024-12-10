@@ -38,21 +38,22 @@ if __name__ == '__main__':
             box = np.load(str_name)
         elif dataset == "SAE":
             str_name = f'dataset/{dataset}/labels/' + image.split('/')[-1].split('_SAE_')[0] + '_label_' + image.split('_SAE_')[1].split('.png')[0] + '.npy'
-            box = np.load(str_name)
         
 
-        print(image.split('/')[-1])
+        # print(image.split('/')[-1])
         # print(box)
+
+        #modify box
         # box[0]['x'] = 205
         # box[1]['w'] = 25
-        # idx = [1,2]
+        # idx = [1]
         # box = np.delete(box, idx, axis=0)
         # np.save(str_name, box)
 
 
         draw_bboxes(im, box)
 
-        
+         
         
         cv2.imshow('out', im)
         cv2.waitKey(0)
